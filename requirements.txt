@@ -1,7 +1,0 @@
-tensorflow>=2.10.0,<3.0.0
-tensorflowjs
-numpy
-matplotlib
-opencv-python
-h5py
-scipy
