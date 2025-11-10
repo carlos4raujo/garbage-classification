@@ -1,4 +1,4 @@
-import { Leaf, Trash2 } from 'lucide-react'
+import { Leaf } from 'lucide-react'
 
 const Header = () => {
   return (

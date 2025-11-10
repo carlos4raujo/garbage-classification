@@ -1,48 +1,101 @@
-import { useState } from "react"
-import { FileCheck } from 'lucide-react'
-import { Card, Container, Button, Row, Col, Form, FormLabel } from "react-bootstrap"
+import { useEffect, useRef, useState } from "react"
+
+import * as tf from "@tensorflow/tfjs"
+import { Card, Container, Button, Row, Col } from "react-bootstrap"
 
 import Header from "./components/Header"
-import Dropzone from "./components/Dropzone"
+import ImageClassifier from "./components/ImageClassifier"
+import TextClassifier from "./components/TextClassifier"
+
+import Classification from "./components/Classification"
 
 function App() {
   const [type, setType] = useState("image")
+  const [textClassificationModel, setTextClassificationModel] = useState(null)
+  const [predict, setPredict] = useState(null)
+  const [isLoadingPredict, setIsLoadingPredict] = useState(null)
+  const [imageClassificationModel, setImageClassificationModel] = useState(null)
+  const isTextModelLoaded = useRef(false)
+  const isImageModelLoaded = useRef(false)
+
+  useEffect(() => {
+    const loadModel = async () => {
+      if (isTextModelLoaded.current) return
+      try {
+        const model = await tf.loadLayersModel("/assets/models/text-classification-node/model.json")
+        setTextClassificationModel(model)
+        console.log("✅ Modelo cargado")
+        isTextModelLoaded.current = true
+      } catch (error) {
+        console.error("❌ Error al cargar el modelo:", error)
+      }
+    }
+    loadModel()
+  }, [])
+
+  useEffect(() => {
+    const loadModel = async () => {
+      if (isImageModelLoaded.current) return
+      try {
+        const model = await tf.loadLayersModel("/assets/models/image-classification/model.json")
+        setImageClassificationModel(model)
+        console.log("✅ Modelo de imagen cargado")
+      } catch (error) {
+        console.error("❌ Error al cargar el modelo de imagen:", error)
+      }
+    }
+    loadModel()
+  }, [])
 
   return (
-    <div style={{ backgroundColor: 'oklch(.98 .005 120)', height: '100vh' }}>
+    <div style={{ backgroundColor: "oklch(.98 .005 120)", height: "100vh" }}>
       <Header />
       <Container>
         <Card className="shadow-sm mt-3 mx-auto" style={{ maxWidth: 650 }}>
           <div className="p-3">
             <Row className="mb-4">
               <Col md="6">
-                <Button variant="success" size="sm" style={{ width: "100%" }} onClick={() => setType("image")}>
+                <Button
+                  variant="success"
+                  size="sm"
+                  style={{ width: "100%" }}
+                  onClick={() => {
+                    setType("image")
+                    setPredict(null)
+                  }}
+                >
                   Subir imagen
                 </Button>
               </Col>
               <Col md="6">
-                <Button style={{ width: "100%" }} size="sm" variant="success" onClick={() => setType("text")}>
+                <Button
+                  style={{ width: "100%" }}
+                  size="sm"
+                  variant="success"
+                  onClick={() => {
+                    setType("text")
+                    setPredict(null)
+                  }}
+                >
                   Describir texto
                 </Button>
               </Col>
             </Row>
-            {type === "image" ? (
-              <Dropzone />
-            ) : (
-              <Form>
-                <FormLabel>Describe el residuo</FormLabel>
-                <Form.Control type="text" placeholder="Ingresa un objeto" />
-              </Form>
-            )}
+            <ImageClassifier
+              model={imageClassificationModel}
+              show={type === "image"}
+              setIsLoadingPredict={setIsLoadingPredict}
+              setPredict={setPredict}
+            />
+            <TextClassifier
+              model={textClassificationModel}
+              show={type === "text"}
+              setIsLoadingPredict={setIsLoadingPredict}
+              setPredict={setPredict}
+            />
           </div>
-          <Row className="my-4 px-4">
-            <Col md="12">
-              <Button size="sm" variant="success" style={{ width: "100%", rowGap: 12 }} onClick={() => setType("image")} className="d-flex justify-content-center">
-                <span>Clasificar residuo</span>
-              </Button>
-            </Col>
-          </Row>
         </Card>
+        <Classification predict={predict} isLoading={isLoadingPredict} />
       </Container>
     </div>
   )
