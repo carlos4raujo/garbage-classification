@@ -22,7 +22,7 @@ function App() {
     const loadModel = async () => {
       if (isTextModelLoaded.current) return
       try {
-        const model = await tf.loadLayersModel("/assets/models/text-classification-node/model.json")
+        const model = await tf.loadLayersModel("/assets/models/text-classification/model.json")
         setTextClassificationModel(model)
         console.log("✅ Modelo cargado")
         isTextModelLoaded.current = true
